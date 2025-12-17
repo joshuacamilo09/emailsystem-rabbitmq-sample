@@ -2,6 +2,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
+import sentry from '@sentry/node';
+import { AllExceptionsFilter } from './exceptionFilter';
 
 /**
  * Função bootstrap
@@ -13,6 +15,9 @@ async function bootstrap() {
   // Criar aplicação Nest.js
   const app = await NestFactory.create(AppModule);
 
+  sentry.init({
+    dsn: process.env.SENTRY_DSN,
+  })
   // Configurar validação automática de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
@@ -30,6 +35,9 @@ async function bootstrap() {
 
   // Habilitar CORS (se necessário)
   app.enableCors();
+
+  // Configurar filtro de exceções
+  app.useGlobalFilters(new AllExceptionsFilter()); 
 
   // Porta do servidor
   const port = process.env.PORT || 3000;

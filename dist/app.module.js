@@ -9,8 +9,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const emails_controller_1 = require("./controller/emails.controller");
+const emails_controller_1 = require("./email/controller/emails.controller");
 const email_module_1 = require("./email/email.module");
+const metrics_controller_1 = require("./common/metrics/controller/metrics.controller");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -23,7 +24,10 @@ exports.AppModule = AppModule = __decorate([
             }),
             email_module_1.EmailModule,
         ],
-        controllers: [emails_controller_1.EmailsController],
+        controllers: [
+            emails_controller_1.EmailsController,
+            metrics_controller_1.MetricsController,
+        ],
         providers: [],
     })
 ], AppModule);

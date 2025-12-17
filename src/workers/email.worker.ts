@@ -1,9 +1,11 @@
+
 // src/modules/emails/workers/email.worker.ts
-import { Injectable, Logger, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { MetricsService } from 'src/common/metrics/metrics.service';
 import { EmailService } from 'src/Services/email.service';
-import { QueueService } from 'src/Services/queue.service';
+import { QueueService } from 'src/Services/queue.service'; 
 
-
+//temos de aplicar as métricas no email.worker.ts
 
 /**
  * Worker que processa emails em background
@@ -16,6 +18,7 @@ export class EmailWorker implements OnApplicationBootstrap {
   constructor(
     private queueService: QueueService,
     private emailService: EmailService,
+    private metrics: MetricsService
   ) {}
 
   /**
@@ -32,15 +35,46 @@ export class EmailWorker implements OnApplicationBootstrap {
     this.logger.log('🚀 Email Worker iniciado');
 
     await this.queueService.consumeEmailQueue(async (job) => {
-      // Enviar email
+      const type = job.type; //tipos de email
+
+      //empezar a medir a duração
+      const stopTimer = this.metrics.emailDuration.startTimer({ type });
+
+      this.metrics.emailProcessed.inc({ type }); //email foi pego da fila e processado
+
+      try {
+        // Enviar email
       const result = await this.emailService.sendEmail(job);
 
-      // Se falhou, lançar erro para NACK
-      if (!result.success) {
-        throw new Error(result.error);
+        if (!result.success){
+            //falha lógica 
+            this.metrics.emailFailure.inc({
+            type,
+            reason: result.error || 'unknown', 
+          }); 
+          throw new Error(result.error);
+        }
+
+        //sucesso
+        this.metrics.emailSuccess.inc({ type }); 
+
+        this.logger.log(`Email enviado: ${type}`);
+
+      } catch (error) {
+        // falha inesperada (exception real)
+        this.metrics.emailFailure.inc({
+          type,
+          reason: error.name || 'exception',
+        });
+
+        this.logger.error(`Falha ao enviar email: ${type}`, error.stack);
+
+        throw error;
+
+      } finally {
+        stopTimer(); //sempre para o timer (sucesso ou falha)
       }
     });
-
-    this.logger.log('✅ Worker rodando e aguardando mensagens...\n');
+    this.logger.log('Worker rodando e aguardando mensagens...\n');
   }
 }

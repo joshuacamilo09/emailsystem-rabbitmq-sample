@@ -44,14 +44,14 @@ let EmailService = EmailService_1 = class EmailService {
           </div>
           <div class="content">
             <h2>Olá, ${data.userName}!</h2>
-            <p>ahhhh sei la crlh.</p>
+            <p>teste.</p>
             ${data.activationLink
             ? `
-              <p>PNo link nao tem nada mas toca so ja pra experimentar:</p>
-              <p><a href="${data.activationLink}" class="button">Ativar Conta</a></p>
+              <p>teste:</p>
+              <p><a href="${data.activationLink}" class="button">teste</a></p>
             `
             : ''}
-            <p>Qualquer dúvida, vai a merda!</p>
+            <p>teste!</p>
             <p>Atenciosamente,<br>Joshuaaaaa</p>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ConsumeMessage } from 'amqplib';
 import { RabbitMQService } from 'src/common/config/rabbitmq.config';
 import { EmailPayload, EmailJob } from 'src/common/types/email.types';
+import { MetricsService } from 'src/common/metrics/metrics.service';
 
 /**
  * Serviço de gerenciamento de fila de emails
@@ -15,9 +16,11 @@ export class QueueService implements OnModuleInit {
   private readonly QUEUE_NAME: string;
   private readonly DLQ_NAME: string;
 
+
   constructor(
     private rabbitMQService: RabbitMQService,
     private configService: ConfigService,
+    private metrics: MetricsService
   ) {
     this.QUEUE_NAME = this.configService.get('QUEUE_EMAILS') || 'emails';
     this.DLQ_NAME = this.configService.get('QUEUE_EMAILS_DLQ') || 'emails_failed';
@@ -90,6 +93,11 @@ export class QueueService implements OnModuleInit {
         job.attempts++;
         job.lastAttemptAt = new Date();
 
+        if (job.attempts > 0) {
+          this.metrics.emailRetry.inc({
+            type: job.type,
+          })
+        }
         // Log detalhado
         this.logger.log(
           `\n   [${job.id}] Processando email ${isRetry ? '(RETRY)' : ''}:` +

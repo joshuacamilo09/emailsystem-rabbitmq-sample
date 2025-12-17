@@ -1,7 +1,9 @@
 import { Module } from "@nestjs/common";
 import { EmailConfigService } from "src/common/config/email.config";
 import { RabbitMQService } from "src/common/config/rabbitmq.config";
-import { EmailsController } from "src/controller/emails.controller";
+import { MetricsController } from "src/common/metrics/controller/metrics.controller";
+import { MetricsService } from "src/common/metrics/metrics.service";
+import { EmailsController } from "src/email/controller/emails.controller";
 import { EmailService } from "src/Services/email.service";
 import { QueueService } from "src/Services/queue.service";
 import { EmailWorker } from "src/workers/email.worker";
@@ -12,7 +14,8 @@ export { SendEmailDto } from 'src/DTO/send-email-dto';
 
 @Module({
     controllers: [ 
-        EmailsController
+        EmailsController,
+        MetricsController
     ],
     providers: [
         //configs
@@ -24,10 +27,13 @@ export { SendEmailDto } from 'src/DTO/send-email-dto';
         QueueService,
         
         //depende detudo
-        EmailWorker
+        EmailWorker,
+
+        MetricsService,
     ],
     exports: [
-       QueueService //exportar para outros modulos usarem
+       QueueService, //exportar para outros modulos usarem
+       MetricsService,
     ]
 })
 export class EmailModule {}

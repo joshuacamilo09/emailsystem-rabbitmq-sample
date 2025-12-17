@@ -1,8 +1,9 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { EmailsController } from './controller/emails.controller';
+import { EmailsController } from './email/controller/emails.controller';
 import { EmailModule } from './email/email.module';
+import { MetricsController } from './common/metrics/controller/metrics.controller';
 
 /**
  * Módulo raiz da aplicação
@@ -18,7 +19,10 @@ import { EmailModule } from './email/email.module';
     // Módulo de emails
     EmailModule,
   ],
-  controllers: [EmailsController],
+  controllers: [
+    EmailsController,
+    MetricsController,
+  ],
   providers: [],
 })
 export class AppModule {}

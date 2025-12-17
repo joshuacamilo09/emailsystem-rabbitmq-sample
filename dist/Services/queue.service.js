@@ -15,15 +15,18 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const uuid_1 = require("uuid");
 const rabbitmq_config_1 = require("../common/config/rabbitmq.config");
+const metrics_service_1 = require("../common/metrics/metrics.service");
 let QueueService = QueueService_1 = class QueueService {
     rabbitMQService;
     configService;
+    metrics;
     logger = new common_1.Logger(QueueService_1.name);
     QUEUE_NAME;
     DLQ_NAME;
-    constructor(rabbitMQService, configService) {
+    constructor(rabbitMQService, configService, metrics) {
         this.rabbitMQService = rabbitMQService;
         this.configService = configService;
+        this.metrics = metrics;
         this.QUEUE_NAME = this.configService.get('QUEUE_EMAILS') || 'emails';
         this.DLQ_NAME = this.configService.get('QUEUE_EMAILS_DLQ') || 'emails_failed';
     }
@@ -66,6 +69,11 @@ let QueueService = QueueService_1 = class QueueService {
                 const job = JSON.parse(msg.content.toString());
                 job.attempts++;
                 job.lastAttemptAt = new Date();
+                if (job.attempts > 0) {
+                    this.metrics.emailRetry.inc({
+                        type: job.type,
+                    });
+                }
                 this.logger.log(`\n   [${job.id}] Processando email ${isRetry ? '(RETRY)' : ''}:` +
                     `\n   Tipo: ${job.type}` +
                     `\n   Para: ${job.to}` +
@@ -108,6 +116,7 @@ exports.QueueService = QueueService;
 exports.QueueService = QueueService = QueueService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [rabbitmq_config_1.RabbitMQService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        metrics_service_1.MetricsService])
 ], QueueService);
 //# sourceMappingURL=queue.service.js.map

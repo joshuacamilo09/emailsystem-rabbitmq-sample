@@ -10,7 +10,9 @@ exports.EmailModule = exports.SendEmailDto = exports.SendNewsletterDto = exports
 const common_1 = require("@nestjs/common");
 const email_config_1 = require("../common/config/email.config");
 const rabbitmq_config_1 = require("../common/config/rabbitmq.config");
-const emails_controller_1 = require("../controller/emails.controller");
+const metrics_controller_1 = require("../common/metrics/controller/metrics.controller");
+const metrics_service_1 = require("../common/metrics/metrics.service");
+const emails_controller_1 = require("./controller/emails.controller");
 const email_service_1 = require("../Services/email.service");
 const queue_service_1 = require("../Services/queue.service");
 const email_worker_1 = require("../workers/email.worker");
@@ -28,17 +30,20 @@ exports.EmailModule = EmailModule;
 exports.EmailModule = EmailModule = __decorate([
     (0, common_1.Module)({
         controllers: [
-            emails_controller_1.EmailsController
+            emails_controller_1.EmailsController,
+            metrics_controller_1.MetricsController
         ],
         providers: [
             rabbitmq_config_1.RabbitMQService,
             email_config_1.EmailConfigService,
             email_service_1.EmailService,
             queue_service_1.QueueService,
-            email_worker_1.EmailWorker
+            email_worker_1.EmailWorker,
+            metrics_service_1.MetricsService,
         ],
         exports: [
-            queue_service_1.QueueService
+            queue_service_1.QueueService,
+            metrics_service_1.MetricsService,
         ]
     })
 ], EmailModule);
