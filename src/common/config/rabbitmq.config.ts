@@ -118,12 +118,16 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     //apos criar a fila de mensagens falhas, criar fila principal
     await channel.assertQueue(queueName, {
       durable: true,
-      arguments: dlqName
-        ? {
-            'x-dead-letter-exchange': '',
-            'x-dead-letter-routing-key': dlqName,
-          }
-        : {},
+      arguments: {
+        // prioridades 1..10 (reset de password = 10, newsletter = 1)
+        'x-max-priority': 10,
+        ...(dlqName
+          ? {
+              'x-dead-letter-exchange': '',
+              'x-dead-letter-routing-key': dlqName,
+            }
+          : {}),
+      },
     });
 
     //retorna o canal de comunicação
